@@ -4,46 +4,55 @@
     ViewData["Title"] = "Currency Converter";
 }
 
-<h2>@ViewData["Title"]</h2>
+<h2 class="text-center">@ViewData["Title"]</h2>
+<div class="d-flex justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <section class="bg-custom-light p-4 rounded-custom shadow-custom">
+            <form id="currencyConverterForm" method="post" class="modern-form">
+                <div class="form-group">
+                    <label for="BaseCurrency">Base Currency</label>
+                    <select id="BaseCurrency" name="BaseCurrency" class="form-control">
+                    </select>
+                </div>
 
-<form id="currencyConverterForm" method="post">
-    <div class="form-group">
-        <label for="BaseCurrency">Base Currency</label>
-        <select id="BaseCurrency" name="BaseCurrency" class="form-control">
-        </select>
+                <div class="form-group">
+                    <label for="TargetCurrency">Target Currency</label>
+                    <select id="TargetCurrency" name="TargetCurrency" class="form-control">
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="Amount">Amount</label>
+                    <input type="number" id="Amount" name="Amount" class="form-control" value="@Model.Amount" min="0.1" />
+                </div>
+
+                <div class="form-group">
+                    <label for="ConvertedAmount">Converted Amount</label>
+                    <input type="text" id="ConvertedAmount" class="form-control" readonly value="@Model.ConvertedAmount" />
+                </div>
+
+                <div class="form-check">
+                    <input type="hidden" id="SaveFavoriteHidden" name="SaveFavorite" value="false" />
+                    <input type="checkbox" id="SaveFavorite" name="SaveFavorite" class="form-check-input" />
+                    <label for="SaveFavorite" class="form-check-label">Save as Favorite</label>
+                </div>
+                <br />
+                 <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">Convert</button>
+                    <button type="button" id="clearButton" class="btn btn-secondary">Clear</button>
+                </div>
+            </form>
+
+            @if (ViewData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger mt-3">
+                    @ViewData["ErrorMessage"]
+                </div>
+            }
+
+        </section>
     </div>
-
-    <div class="form-group">
-        <label for="TargetCurrency">Target Currency</label>
-        <select id="TargetCurrency" name="TargetCurrency" class="form-control">
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="Amount">Amount</label>
-        <input type="number" id="Amount" name="Amount" class="form-control" value="@Model.Amount" />
-    </div>
-
-    <div class="form-group">
-        <label for="ConvertedAmount">Converted Amount</label>
-        <input type="text" id="ConvertedAmount" class="form-control" readonly value="@Model.ConvertedAmount" />
-    </div>
-
-    <div class="form-check">
-        <input type="checkbox" id="SaveFavorite" name="SaveFavorite" class="form-check-input" />
-        <label for="SaveFavorite" class="form-check-label">Save as Favorite</label>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Convert</button>
-</form>
-
-@if (ViewData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger mt-3">
-        @ViewData["ErrorMessage"]
-    </div>
-}
-
+</div>
 @section Scripts {
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
@@ -52,8 +61,8 @@
                 var baseCurrencySelect = $('#BaseCurrency');
                 var targetCurrencySelect = $('#TargetCurrency');
 
-                baseCurrencySelect.empty(); 
-                targetCurrencySelect.empty(); 
+                baseCurrencySelect.empty();
+                targetCurrencySelect.empty();
 
                 $.each(data, function (index, item) {
                     var option = $('<option></option>')
@@ -69,12 +78,18 @@
 
             $('#currencyConverterForm').on('submit', function (e) {
                 e.preventDefault();
+                var amount = $('#Amount').val();
+                if (amount <= 0) {
+                    $('#amountError').show();
+                    return;
+                } else {
+                    $('#amountError').hide();
+                }
 
                 var form = $(this);
                 var formData = form.serialize();
                 var saveFavorite = $('#SaveFavorite').is(':checked');
                 formData += '&SaveFavorite=' + (saveFavorite ? 'true' : 'false');
-
                 $.ajax({
                     url: '@Url.Action("Convert", "CurrencyConverter")',
                     type: 'POST',
@@ -92,6 +107,11 @@
                 });
             });
 
+            $('#clearButton').on('click', function () {
+                $('#currencyConverterForm')[0].reset();
+                $('#ConvertedAmount').val('');
+                $('#amountError').hide();
+            });
 
             $('#Amount, #BaseCurrency, #TargetCurrency').on('change', function () {
                 var amount = $('#Amount').val();
@@ -113,6 +133,10 @@
                         }
                     });
                 }
+            });
+
+            $('#SaveFavorite').on('change', function () {
+                $('#SaveFavoriteHidden').val($(this).is(':checked') ? 'true' : 'false');
             });
         });
     </script>
