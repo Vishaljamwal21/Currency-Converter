@@ -2,28 +2,39 @@
 
 @{
     ViewData["Title"] = "Currency Converter";
-}
 
+    var historicalRates = ViewBag.HistoricalRates as Dictionary<string, decimal>;
+    var favorites = ViewBag.Favorites as List<CurrencyConverter.Models.FavoriteCurrencyPair>;
+}
 <h2 class="text-center">@ViewData["Title"]</h2>
 <div class="d-flex justify-content-center">
     <div class="col-md-6 col-lg-4">
         <section class="bg-custom-light p-4 rounded-custom shadow-custom">
-            <form id="currencyConverterForm" method="post" class="modern-form">
+            <form id="currencyConverterForm" method="post" class="needs-validation" novalidate>
                 <div class="form-group">
                     <label for="BaseCurrency">Base Currency</label>
                     <select id="BaseCurrency" name="BaseCurrency" class="form-control">
+                        @foreach (var currency in ViewBag.Currencies as Dictionary<string, string>)
+                        {
+                            <option value="@currency.Key">@currency.Value (@currency.Key)</option>
+                        }
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="TargetCurrency">Target Currency</label>
                     <select id="TargetCurrency" name="TargetCurrency" class="form-control">
+                        @foreach (var currency in ViewBag.Currencies as Dictionary<string, string>)
+                        {
+                            <option value="@currency.Key">@currency.Value (@currency.Key)</option>
+                        }
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="Amount">Amount</label>
-                    <input type="number" id="Amount" name="Amount" class="form-control" value="@Model.Amount" min="0.1" />
+                    <input type="number" id="Amount" name="Amount" class="form-control" value="@Model.Amount" min="0.1" step="0.01" required />
+                    <div class="invalid-feedback">Please enter a valid amount greater than 0.</div>
                 </div>
 
                 <div class="form-group">
@@ -37,7 +48,7 @@
                     <label for="SaveFavorite" class="form-check-label">Save as Favorite</label>
                 </div>
                 <br />
-                 <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between">
                     <button type="submit" class="btn btn-primary">Convert</button>
                     <button type="button" id="clearButton" class="btn btn-secondary">Clear</button>
                 </div>
@@ -49,7 +60,35 @@
                     @ViewData["ErrorMessage"]
                 </div>
             }
-
+            @if (favorites != null && favorites.Count > 0)
+            {
+                <section class="mt-4">
+                    <h3>Quick Access Favorites</h3>
+                    <ul class="list-group">
+                        @foreach (var favorite in favorites)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @favorite.BaseCurrency - @favorite.TargetCurrency
+                                <button class="btn btn-primary p-0" onclick="setFavorite('@favorite.BaseCurrency', '@favorite.TargetCurrency')">Use</button>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+            @if (historicalRates != null && historicalRates.Count > 0)
+            {
+                <section class="mt-4">
+                    <h3>Historical Exchange Rates (Today)</h3>
+                    <ul class="list-group">
+                        @foreach (var rate in historicalRates)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @rate.Key - @rate.Value
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
         </section>
     </div>
 </div>
@@ -57,39 +96,21 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
-            $.getJSON('@Url.Action("GetCountries", "CurrencyConverter")', function (data) {
-                var baseCurrencySelect = $('#BaseCurrency');
-                var targetCurrencySelect = $('#TargetCurrency');
-
-                baseCurrencySelect.empty();
-                targetCurrencySelect.empty();
-
-                $.each(data, function (index, item) {
-                    var option = $('<option></option>')
-                        .attr('value', item.Code)
-                        .text(item.Name + ' (' + item.Code + ')');
-
-                    baseCurrencySelect.append(option.clone());
-                    targetCurrencySelect.append(option);
-                });
-            }).fail(function () {
-                alert('Failed to load currencies.');
-            });
-
             $('#currencyConverterForm').on('submit', function (e) {
                 e.preventDefault();
-                var amount = $('#Amount').val();
-                if (amount <= 0) {
-                    $('#amountError').show();
+
+                var form = $(this)[0];
+                if (form.checkValidity() === false) {
+                    e.stopPropagation();
+                    $(this).addClass('was-validated');
                     return;
-                } else {
-                    $('#amountError').hide();
                 }
 
-                var form = $(this);
-                var formData = form.serialize();
+                var amount = $('#Amount').val();
+                var formData = $(this).serialize();
                 var saveFavorite = $('#SaveFavorite').is(':checked');
                 formData += '&SaveFavorite=' + (saveFavorite ? 'true' : 'false');
+
                 $.ajax({
                     url: '@Url.Action("Convert", "CurrencyConverter")',
                     type: 'POST',
@@ -97,12 +118,15 @@
                     success: function (response) {
                         if (response.success) {
                             $('#ConvertedAmount').val(response.convertedAmount.toFixed(2));
+                            $('#ConvertedAmount').show();
                         } else {
                             alert(response.errorMessage);
+                            $('#ConvertedAmount').val('');
                         }
                     },
                     error: function () {
                         alert('An error occurred. Please try again.');
+                        $('#ConvertedAmount').val('');
                     }
                 });
             });
@@ -110,7 +134,8 @@
             $('#clearButton').on('click', function () {
                 $('#currencyConverterForm')[0].reset();
                 $('#ConvertedAmount').val('');
-                $('#amountError').hide();
+                $('#ConvertedAmount').hide(); 
+                $('#currencyConverterForm').removeClass('was-validated');
             });
 
             $('#Amount, #BaseCurrency, #TargetCurrency').on('change', function () {
@@ -138,7 +163,15 @@
             $('#SaveFavorite').on('change', function () {
                 $('#SaveFavoriteHidden').val($(this).is(':checked') ? 'true' : 'false');
             });
+
+            $('#ConvertedAmount').hide();
         });
+
+        function setFavorite(baseCurrency, targetCurrency) {
+            $('#BaseCurrency').val(baseCurrency).trigger('change');
+            $('#TargetCurrency').val(targetCurrency).trigger('change');
+        }
     </script>
     <partial name="_ValidationScriptsPartial" />
 }
+

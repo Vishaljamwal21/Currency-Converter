@@ -71,5 +71,27 @@ namespace CurrencyConverter.Services
             return amount * rate;
         }
 
+        public async Task<Dictionary<string, string>> GetCurrenciesAsync()
+        {
+            var url = "https://openexchangerates.org/api/currencies.json";
+            try
+            {
+                var response = await _httpClient.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+
+                var json = await response.Content.ReadAsStringAsync();
+                var currencies = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+
+                return currencies;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new Exception("An error occurred while fetching currencies.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while processing currencies.", ex);
+            }
+        }
     }
 }

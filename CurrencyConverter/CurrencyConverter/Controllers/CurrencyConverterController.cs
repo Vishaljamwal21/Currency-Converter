@@ -24,8 +24,20 @@ namespace CurrencyConverter.Controllers
         public async Task<IActionResult> Index()
         {
             var model = new CurrencyConvert();
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var favorites = await _context.FavoriteCurrencyPairs
+                    .Where(f => f.UserId == userId)
+                    .ToListAsync();
+                ViewBag.Favorites = favorites;
+            }
+            var currencies = await _exchangeRateService.GetCurrenciesAsync();
+            ViewBag.Currencies = currencies;
+
             return View(model);
         }
+
 
 
         [HttpPost]
@@ -99,21 +111,6 @@ namespace CurrencyConverter.Controllers
 
             return Json(new { error = "Currency not found." });
         }
-        [HttpGet]
-        public IActionResult GetCountries()
-        {
-            var countriesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "countries.json");
-
-            if (!System.IO.File.Exists(countriesPath))
-            {
-                return NotFound("Currencies file not found.");
-            }
-
-            var countries = System.IO.File.ReadAllText(countriesPath);
-            return Content(countries, "application/json");
-        }
-
-
 
     }
 }
