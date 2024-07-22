@@ -20,3 +20,80 @@ html {
 body {
   margin-bottom: 60px;
 }
+.form-floating {
+    position: relative;
+}
+
+    .form-floating input {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+    }
+
+        .form-floating input:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.25);
+        }
+
+    .form-floating label {
+        color: #495057;
+    }
+
+.bg-custom-light {
+    background-color: #f8f9fa;
+}
+
+.rounded-custom {
+    border-radius: 1rem;
+}
+
+.shadow-custom {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.text-highlight {
+    color: #007bff;
+}
+.text-highlight {
+    color: #007bff;
+}
+
+.bg-custom-light {
+    background-color: #f8f9fa;
+}
+
+.rounded-custom {
+    border-radius: 0.75rem;
+}
+
+.shadow-custom {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.text-link {
+    color: #007bff;
+}
+
+    .text-link:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+
+.form-floating input {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+    .form-floating input:focus {
+        border-color: #007bff;
+        outline: 0;
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.25);
+    }
+
+.form-floating label {
+    color: #495057;
+}
