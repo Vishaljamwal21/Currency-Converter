@@ -10,19 +10,25 @@ namespace CurrencyConverter.Services
     public class ExchangeRateService
     {
         private readonly HttpClient _httpClient;
-        private readonly IConfiguration _configuration;
+        private readonly string _baseUrl;
+        private readonly string _apiKey;
+        private readonly string _currencyUrl;
+        private readonly string _historicalBaseUrl;
+        private readonly string _appId;
 
         public ExchangeRateService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
-            _configuration = configuration;
+            _baseUrl = configuration["ExchangeRateAPI:BaseUrl"];
+            _apiKey = configuration["ExchangeRateAPI:ApiKey"];
+            _currencyUrl = configuration["HistoricalExchangeRateAPI:CurrencyUrl"];
+            _historicalBaseUrl = configuration["HistoricalExchangeRateAPI:BaseUrl"];
+            _appId = configuration["HistoricalExchangeRateAPI:AppId"];
         }
 
         public async Task<Dictionary<string, decimal>> GetExchangeRatesAsync(string baseCurrency)
         {
-            var baseUrl = _configuration["ExchangeRateAPI:BaseUrl"];
-            var apiKey = _configuration["ExchangeRateAPI:ApiKey"];
-            var url = $"{baseUrl}{baseCurrency}?access_key={apiKey}";
+            var url = $"{_baseUrl}{baseCurrency}?access_key={_apiKey}";
 
             try
             {
@@ -73,10 +79,9 @@ namespace CurrencyConverter.Services
 
         public async Task<Dictionary<string, string>> GetCurrenciesAsync()
         {
-            var url = _configuration["HistoricalExchangeRateAPI:CurrencyUrl"];
             try
             {
-                var response = await _httpClient.GetAsync(url);
+                var response = await _httpClient.GetAsync(_currencyUrl);
                 response.EnsureSuccessStatusCode();
 
                 var json = await response.Content.ReadAsStringAsync();
@@ -96,13 +101,11 @@ namespace CurrencyConverter.Services
 
         public async Task<Dictionary<string, decimal>> GetHistoricalRatesAsync(DateTime date)
         {
-            var baseUrl = _configuration["HistoricalExchangeRateAPI:BaseUrl"];
-            var appId = _configuration["HistoricalExchangeRateAPI:AppId"];
-            var url = $"{baseUrl}{date:yyyy-MM-dd}.json?app_id={appId}";
-            using var httpClient = new HttpClient();
+            var url = $"{_historicalBaseUrl}{date:yyyy-MM-dd}.json?app_id={_appId}";
+
             try
             {
-                var response = await httpClient.GetStringAsync(url);
+                var response = await _httpClient.GetStringAsync(url);
                 var result = JsonConvert.DeserializeObject<dynamic>(response);
                 var rates = result?.rates;
                 if (rates == null)
@@ -120,6 +123,5 @@ namespace CurrencyConverter.Services
                 return new Dictionary<string, decimal>();
             }
         }
-
     }
 }
