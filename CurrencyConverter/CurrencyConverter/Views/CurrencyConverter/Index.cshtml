@@ -10,10 +10,11 @@
 <h2 class="text-center">@ViewData["Title"]</h2>
 <div class="container">
     <div class="row">
-        @if (User.Identity.IsAuthenticated)
-        {
-            <div class="col-md-4">
-                <section class="mt-4">
+       
+           <div class="col-md-4 d-flex justify-content-center">
+             @if (User.Identity.IsAuthenticated)
+             {
+                <section class="bg-custom-light p-4 rounded-custom shadow-custom">
                     <h3>Historical Exchange Rates</h3>
                     <form id="historicalRatesForm" method="get" class="needs-validation" novalidate>
                         <div class="form-group">
@@ -35,14 +36,9 @@
                         }
                     </ul>
                 </section>
-            </div>
-        }
-        else
-        {
-              <div class="col-md-4">
-                    
-              </div>
-        }
+             } 
+           </div>
+       
         <div class="col-md-4 d-flex justify-content-center">
             <section class="bg-custom-light p-4 rounded-custom shadow-custom">
                 <form id="currencyConverterForm" method="post" class="needs-validation" novalidate>
@@ -69,11 +65,11 @@
 
                     <div class="form-group">
                         <label for="Amount">Amount</label>
-                        <input type="number" id="Amount" name="Amount" class="form-control" value="@Model.Amount" min="0.1" step="0.01" required />
-                        <div class="invalid-feedback">Please enter a valid amount greater than 0.</div>
+                        <input type="number" id="Amount" name="Amount" class="form-control" value="@Model.Amount" min="0.1" step="0.01" max="100000000000000" required />
+                        <div class="invalid-feedback">Please enter a valid amount greater than 0 or less than 100000000000000.</div>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group" id="convertedamountdiv">
                         <label for="ConvertedAmount">Converted Amount</label>
                         <input type="text" id="ConvertedAmount" class="form-control" readonly value="@Model.ConvertedAmount" />
                     </div>
@@ -102,21 +98,21 @@
             </section>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-4 d-flex justify-content-center">
             @if (favorites != null && favorites.Count > 0)
             {
-                <section class="mt-4">
+                <section class="bg-custom-light p-4 rounded-custom shadow-custom">
                     <h3>Quick Access Favorites</h3>
-                    <ul class="list-group" id="Favorites">
+                    <ul class="list-group scrollbar" id="Favorites">
                         @foreach (var favorite in favorites)
                         {
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 @favorite.BaseCurrency - @favorite.TargetCurrency
-                                <button class="btn btn-primary p-0" onclick="setFavorite('@favorite.BaseCurrency', '@favorite.TargetCurrency')">
-                                    <i class="fas fa-check"></i>Use
+                                <button class="btn btn-primary btn-sm" onclick="setFavorite('@favorite.BaseCurrency', '@favorite.TargetCurrency')">
+                                    <i class="fas fa-plus"></i>
                                 </button>
                                 <button class="btn btn-danger btn-sm" id="delete_@favorite.Id">
-                                    <i class="fas fa-trash-alt"></i> Delete
+                                    <i class="fas fa-trash-alt"></i> 
                                 </button>
                             </li>
                         }
@@ -131,6 +127,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
+            $('#convertedamountdiv').hide();
             $('#currencyConverterForm').on('submit', function (e) {
                 e.preventDefault();
 
@@ -152,16 +149,14 @@
                     data: formData,
                     success: function (response) {
                         if (response.success) {
+                            fetchFavorites();
                             $('#ConvertedAmount').val(response.convertedAmount.toFixed(2));
                             $('#ConvertedAmount').show();
-
+                            $('#convertedamountdiv').show();
                             if (response.errorMessage) {
                                 $('#favoriteErrorMessage').text(response.errorMessage).show();
                             } else {
                                 $('#favoriteErrorMessage').hide();
-                            }
-                            if (response.updatedFavorites) {
-                                updateFavoritesList(response.updatedFavorites);
                             }
                         } else {
                             alert(response.errorMessage);
@@ -183,14 +178,32 @@
                     favoritesList.append(
                         '<li class="list-group-item d-flex justify-content-between align-items-center">' +
                         favorite.baseCurrency + ' - ' + favorite.targetCurrency +
-                        '<button class="btn btn-primary p-0" onclick="setFavorite(\'' + favorite.baseCurrency + '\', \'' + favorite.targetCurrency + '\')">Use</button>' +
+                        '<button class="btn btn-primary btn-sm" onclick="setFavorite(\'' + favorite.baseCurrency + '\', \'' + favorite.targetCurrency + '\')">' + '<i class="fas fa-plus"></i>' +
+                        '</button>' +
                         '<button id="delete_' + favorite.id + '" class="btn btn-danger btn-sm" >' +
-                        '<i class="fas fa-trash-alt"></i> Delete' +
+                        '<i class="fas fa-trash-alt"></i> ' +
                         '</button>' +
                         '</li>'
                     );
                 });
             }
+
+            function fetchFavorites() {
+                $.ajax({
+                    url: '@Url.Action("GetFavorites", "CurrencyConverter")',
+                    type: 'GET',
+                    success: function (response) {
+                        if (response.success) {
+                            updateFavoritesList(response.favorites);
+                        } 
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Failed to fetch favorites:', error);
+                    }
+                });
+            }
+
+
             $(document).ready(function () {
                 $("[id^='delete_']").click(function () {
                     var id = $(this).attr('id').replace('delete_', '');
@@ -219,7 +232,7 @@
                                         'Your favorite has been deleted.',
                                         'success'
                                     );
-                                    location.reload();
+                                    fetchFavorites();
                                 } else {
                                     Swal.fire(
                                         'Error!',
@@ -246,6 +259,7 @@
                 $('#currencyConverterForm')[0].reset();
                 $('#ConvertedAmount').val('');
                 $('#ConvertedAmount').hide();
+                $('#convertedamountdiv').hide();
                 $('#currencyConverterForm').removeClass('was-validated');
                 $('#favoriteErrorMessage').hide();
             });

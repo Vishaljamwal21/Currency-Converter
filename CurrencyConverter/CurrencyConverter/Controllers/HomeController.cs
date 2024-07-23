@@ -14,12 +14,15 @@ namespace CurrencyConverter.Controllers
             _logger = logger;
             _exchangeRateService = exchangeRateService;
         }
-
         public IActionResult Index()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "CurrencyConverter");
+            }
+
             return View();
         }
-
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

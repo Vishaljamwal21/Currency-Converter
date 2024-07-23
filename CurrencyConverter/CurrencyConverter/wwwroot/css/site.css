@@ -155,6 +155,9 @@ body {
 .scrollable-list {
     max-height: 200px; 
     overflow-y: auto;
+}.scrollbar {
+    max-height: 400px; 
+    overflow-y: auto;
 }
 .pricing-card {
     border: 1px solid #e6e6e6;
