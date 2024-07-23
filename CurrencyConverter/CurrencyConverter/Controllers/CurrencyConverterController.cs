@@ -28,18 +28,15 @@ namespace CurrencyConverter.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var favorites = await _context.FavoriteCurrencyPairs
                     .Where(f => f.UserId == userId)
-                    .ToListAsync();
+                    .ToListAsync();             
+                var historicalRates = await _exchangeRateService.GetHistoricalRatesAsync(DateTime.UtcNow);
+                ViewBag.HistoricalRates = historicalRates;
                 ViewBag.Favorites = favorites;
             }
-
             var currencies = await _exchangeRateService.GetCurrenciesAsync();
             ViewBag.Currencies = currencies;
-            var historicalRates = await _exchangeRateService.GetHistoricalRatesAsync(DateTime.UtcNow);
-            ViewBag.HistoricalRates = historicalRates;
-
             return View(model);
         }
-
 
         [HttpPost]
         public async Task<IActionResult> Convert(CurrencyConvert model, bool saveFavorite)
@@ -73,7 +70,10 @@ namespace CurrencyConverter.Controllers
                                                       f.TargetCurrency == model.TargetCurrency);
                         if (existingFavorite != null)
                         {
-                            return Json(new { success = true, convertedAmount = model.ConvertedAmount, errorMessage = "This currency pair is already saved as a favorite." });
+                            var favorites = await _context.FavoriteCurrencyPairs
+                                .Where(f => f.UserId == userId)
+                                .ToListAsync();
+                            return Json(new { success = true, convertedAmount = model.ConvertedAmount, favorites, errorMessage = "This currency pair is already saved as a favorite." });
                         }
                         var favorite = new FavoriteCurrencyPair
                         {
@@ -84,6 +84,12 @@ namespace CurrencyConverter.Controllers
                         _context.FavoriteCurrencyPairs.Add(favorite);
                         await _context.SaveChangesAsync();
                     }
+
+                    var updatedFavorites = await _context.FavoriteCurrencyPairs
+                        .Where(f => f.UserId == userId)
+                        .ToListAsync();
+
+                    return Json(new { success = true, convertedAmount = model.ConvertedAmount, updatedFavorites });
                 }
 
                 return Json(new { success = true, convertedAmount = model.ConvertedAmount });
@@ -94,19 +100,26 @@ namespace CurrencyConverter.Controllers
             }
         }
 
-
-        public async Task<IActionResult> Favorites()
+        [HttpPost]
+        public async Task<IActionResult> DeleteFavorite(int id)
         {
             if (User.Identity.IsAuthenticated)
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var favorites = await _context.FavoriteCurrencyPairs
-                    .Where(f => f.UserId == userId)
-                    .ToListAsync();
-                return View(favorites);
+                var favorite = await _context.FavoriteCurrencyPairs
+                    .FirstOrDefaultAsync(f => f.Id == id && f.UserId == userId);
+
+                if (favorite != null)
+                {
+                    _context.FavoriteCurrencyPairs.Remove(favorite);
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true });
+                }
+              
+                return Json(new { success = false, errorMessage = "Favorite not found." });
             }
 
-            return RedirectToAction("Index");
+            return Json(new { success = false, errorMessage = "User not authenticated." });
         }
 
         [HttpGet]
@@ -127,5 +140,6 @@ namespace CurrencyConverter.Controllers
             var rates = await _exchangeRateService.GetHistoricalRatesAsync(date);
             return Json(rates);
         }
+
     }
 }

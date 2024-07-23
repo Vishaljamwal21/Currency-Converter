@@ -73,7 +73,7 @@ namespace CurrencyConverter.Services
 
         public async Task<Dictionary<string, string>> GetCurrenciesAsync()
         {
-            var url = "https://openexchangerates.org/api/currencies.json";
+            var url = _configuration["HistoricalExchangeRateAPI:CurrencyUrl"];
             try
             {
                 var response = await _httpClient.GetAsync(url);
