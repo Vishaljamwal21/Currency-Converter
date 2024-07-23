@@ -93,5 +93,33 @@ namespace CurrencyConverter.Services
                 throw new Exception("An error occurred while processing currencies.", ex);
             }
         }
+
+        public async Task<Dictionary<string, decimal>> GetHistoricalRatesAsync(DateTime date)
+        {
+            var baseUrl = _configuration["HistoricalExchangeRateAPI:BaseUrl"];
+            var appId = _configuration["HistoricalExchangeRateAPI:AppId"];
+            var url = $"{baseUrl}{date:yyyy-MM-dd}.json?app_id={appId}";
+            using var httpClient = new HttpClient();
+            try
+            {
+                var response = await httpClient.GetStringAsync(url);
+                var result = JsonConvert.DeserializeObject<dynamic>(response);
+                var rates = result?.rates;
+                if (rates == null)
+                {
+                    return new Dictionary<string, decimal>();
+                }
+                return rates.ToObject<Dictionary<string, decimal>>();
+            }
+            catch (HttpRequestException ex)
+            {
+                return new Dictionary<string, decimal>();
+            }
+            catch (JsonException ex)
+            {
+                return new Dictionary<string, decimal>();
+            }
+        }
+
     }
 }

@@ -20,7 +20,6 @@ namespace CurrencyConverter.Controllers
             _exchangeRateService = exchangeRateService;
             _context = context;
         }
-
         public async Task<IActionResult> Index()
         {
             var model = new CurrencyConvert();
@@ -32,12 +31,14 @@ namespace CurrencyConverter.Controllers
                     .ToListAsync();
                 ViewBag.Favorites = favorites;
             }
+
             var currencies = await _exchangeRateService.GetCurrenciesAsync();
             ViewBag.Currencies = currencies;
+            var historicalRates = await _exchangeRateService.GetHistoricalRatesAsync(DateTime.UtcNow);
+            ViewBag.HistoricalRates = historicalRates;
 
             return View(model);
         }
-
 
 
         [HttpPost]
@@ -66,6 +67,14 @@ namespace CurrencyConverter.Controllers
 
                     if (saveFavorite)
                     {
+                        var existingFavorite = await _context.FavoriteCurrencyPairs
+                            .FirstOrDefaultAsync(f => f.UserId == userId &&
+                                                      f.BaseCurrency == model.BaseCurrency &&
+                                                      f.TargetCurrency == model.TargetCurrency);
+                        if (existingFavorite != null)
+                        {
+                            return Json(new { success = true, convertedAmount = model.ConvertedAmount, errorMessage = "This currency pair is already saved as a favorite." });
+                        }
                         var favorite = new FavoriteCurrencyPair
                         {
                             UserId = userId,
@@ -84,6 +93,7 @@ namespace CurrencyConverter.Controllers
                 return Json(new { success = false, errorMessage = "Invalid target currency." });
             }
         }
+
 
         public async Task<IActionResult> Favorites()
         {
@@ -111,6 +121,11 @@ namespace CurrencyConverter.Controllers
 
             return Json(new { error = "Currency not found." });
         }
-
+        [HttpGet]
+        public async Task<IActionResult> HistoricalRates(DateTime date)
+        {
+            var rates = await _exchangeRateService.GetHistoricalRatesAsync(date);
+            return Json(rates);
+        }
     }
 }

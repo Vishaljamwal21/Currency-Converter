@@ -152,3 +152,7 @@ body {
     color: #721c24;
     padding: 10px;
 }
+.scrollable-list {
+    max-height: 200px; 
+    overflow-y: auto;
+}

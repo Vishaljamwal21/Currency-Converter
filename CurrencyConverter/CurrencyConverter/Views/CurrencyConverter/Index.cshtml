@@ -6,60 +6,93 @@
     var historicalRates = ViewBag.HistoricalRates as Dictionary<string, decimal>;
     var favorites = ViewBag.Favorites as List<CurrencyConverter.Models.FavoriteCurrencyPair>;
 }
+
 <h2 class="text-center">@ViewData["Title"]</h2>
-<div class="d-flex justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <section class="bg-custom-light p-4 rounded-custom shadow-custom">
-            <form id="currencyConverterForm" method="post" class="needs-validation" novalidate>
-                <div class="form-group">
-                    <label for="BaseCurrency">Base Currency</label>
-                    <select id="BaseCurrency" name="BaseCurrency" class="form-control">
-                        @foreach (var currency in ViewBag.Currencies as Dictionary<string, string>)
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <section class="mt-4">
+                <h3>Historical Exchange Rates</h3>
+                <form id="historicalRatesForm" method="get" class="needs-validation" novalidate>
+                    <div class="form-group">
+                        <label for="HistoricalDate">Select Date</label>
+                        <input type="date" id="HistoricalDate" name="HistoricalDate" class="form-control" required />
+                        <div class="invalid-feedback">Please select a valid date.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Get Rates</button>
+                </form>
+                <ul class="list-group mt-3 scrollable-list" id="historicalRatesList">
+                    @if (historicalRates != null && historicalRates.Count > 0)
+                    {
+                        @foreach (var rate in historicalRates)
                         {
-                            <option value="@currency.Key">@currency.Value (@currency.Key)</option>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @rate.Key - @rate.Value
+                            </li>
                         }
-                    </select>
-                </div>
+                    }
+                </ul>
 
-                <div class="form-group">
-                    <label for="TargetCurrency">Target Currency</label>
-                    <select id="TargetCurrency" name="TargetCurrency" class="form-control">
-                        @foreach (var currency in ViewBag.Currencies as Dictionary<string, string>)
-                        {
-                            <option value="@currency.Key">@currency.Value (@currency.Key)</option>
-                        }
-                    </select>
-                </div>
+            </section>
+        </div>
 
-                <div class="form-group">
-                    <label for="Amount">Amount</label>
-                    <input type="number" id="Amount" name="Amount" class="form-control" value="@Model.Amount" min="0.1" step="0.01" required />
-                    <div class="invalid-feedback">Please enter a valid amount greater than 0.</div>
-                </div>
+        <div class="col-md-4 d-flex justify-content-center">
+            <section class="bg-custom-light p-4 rounded-custom shadow-custom">
+                <form id="currencyConverterForm" method="post" class="needs-validation" novalidate>
+                    <div class="form-group">
+                        <label for="BaseCurrency">Base Currency</label>
+                        <select id="BaseCurrency" name="BaseCurrency" class="form-control">
+                            @foreach (var currency in ViewBag.Currencies as Dictionary<string, string>)
+                            {
+                                <option value="@currency.Key">@currency.Value (@currency.Key)</option>
+                            }
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label for="ConvertedAmount">Converted Amount</label>
-                    <input type="text" id="ConvertedAmount" class="form-control" readonly value="@Model.ConvertedAmount" />
-                </div>
+                    <div class="form-group">
+                        <label for="TargetCurrency">Target Currency</label>
+                        <select id="TargetCurrency" name="TargetCurrency" class="form-control">
+                            @foreach (var currency in ViewBag.Currencies as Dictionary<string, string>)
+                            {
+                                <option value="@currency.Key">@currency.Value (@currency.Key)</option>
+                            }
+                            }
+                        </select>
+                    </div>
 
-                <div class="form-check">
-                    <input type="hidden" id="SaveFavoriteHidden" name="SaveFavorite" value="false" />
-                    <input type="checkbox" id="SaveFavorite" name="SaveFavorite" class="form-check-input" />
-                    <label for="SaveFavorite" class="form-check-label">Save as Favorite</label>
-                </div>
-                <br />
-                <div class="d-flex justify-content-between">
-                    <button type="submit" class="btn btn-primary">Convert</button>
-                    <button type="button" id="clearButton" class="btn btn-secondary">Clear</button>
-                </div>
-            </form>
+                    <div class="form-group">
+                        <label for="Amount">Amount</label>
+                        <input type="number" id="Amount" name="Amount" class="form-control" value="@Model.Amount" min="0.1" step="0.01" required />
+                        <div class="invalid-feedback">Please enter a valid amount greater than 0.</div>
+                    </div>
 
-            @if (ViewData["ErrorMessage"] != null)
-            {
-                <div class="alert alert-danger mt-3">
-                    @ViewData["ErrorMessage"]
-                </div>
-            }
+                    <div class="form-group">
+                        <label for="ConvertedAmount">Converted Amount</label>
+                        <input type="text" id="ConvertedAmount" class="form-control" readonly value="@Model.ConvertedAmount" />
+                    </div>
+                    <div class="form-check">
+                        <input type="hidden" id="SaveFavoriteHidden" name="SaveFavorite" value="false" />
+                        <input type="checkbox" id="SaveFavorite" name="SaveFavorite" class="form-check-input" />
+                        <label for="SaveFavorite" class="form-check-label">Save as Favorite</label>
+                    </div>
+                    <div id="favoriteErrorMessage" class="text-danger mt-2" style="display:none;"></div>
+                    <br />
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Convert</button>
+                        <button type="button" id="clearButton" class="btn btn-secondary">Clear</button>
+                    </div>
+                </form>
+
+                @if (ViewData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger mt-3">
+                        @ViewData["ErrorMessage"]
+                    </div>
+                }
+            </section>
+        </div>
+
+        <div class="col-md-4">
             @if (favorites != null && favorites.Count > 0)
             {
                 <section class="mt-4">
@@ -75,23 +108,10 @@
                     </ul>
                 </section>
             }
-            @if (historicalRates != null && historicalRates.Count > 0)
-            {
-                <section class="mt-4">
-                    <h3>Historical Exchange Rates (Today)</h3>
-                    <ul class="list-group">
-                        @foreach (var rate in historicalRates)
-                        {
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                @rate.Key - @rate.Value
-                            </li>
-                        }
-                    </ul>
-                </section>
-            }
-        </section>
+        </div>
     </div>
 </div>
+
 @section Scripts {
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
@@ -119,6 +139,12 @@
                         if (response.success) {
                             $('#ConvertedAmount').val(response.convertedAmount.toFixed(2));
                             $('#ConvertedAmount').show();
+
+                            if (response.errorMessage) {
+                                $('#favoriteErrorMessage').text(response.errorMessage).show();
+                            } else {
+                                $('#favoriteErrorMessage').hide();
+                            }
                         } else {
                             alert(response.errorMessage);
                             $('#ConvertedAmount').val('');
@@ -134,8 +160,9 @@
             $('#clearButton').on('click', function () {
                 $('#currencyConverterForm')[0].reset();
                 $('#ConvertedAmount').val('');
-                $('#ConvertedAmount').hide(); 
+                $('#ConvertedAmount').hide();
                 $('#currencyConverterForm').removeClass('was-validated');
+                $('#favoriteErrorMessage').hide();
             });
 
             $('#Amount, #BaseCurrency, #TargetCurrency').on('change', function () {
@@ -165,13 +192,48 @@
             });
 
             $('#ConvertedAmount').hide();
+
+            $('#historicalRatesForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var date = $('#HistoricalDate').val();
+                if (date) {
+                    $.ajax({
+                        url: '@Url.Action("HistoricalRates", "CurrencyConverter")',
+                        type: 'GET',
+                        data: { date: date },
+                        success: function (response) {
+                            var historicalRatesList = $('#historicalRatesList');
+                            historicalRatesList.empty();
+
+                            if (response) {
+                                $.each(response, function (currency, rate) {
+                                    historicalRatesList.append(
+                                        '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                                        currency + ' - ' + rate +
+                                        '</li>'
+                                    );
+                                    $('#HistoricalDate').val('');
+                                });
+                            } else {
+                                historicalRatesList.append(
+                                    '<li class="list-group-item">No historical rates available for this date.</li>'
+                                );
+                            }
+                        }
+                    });
+                }
+            });
         });
 
         function setFavorite(baseCurrency, targetCurrency) {
             $('#BaseCurrency').val(baseCurrency).trigger('change');
             $('#TargetCurrency').val(targetCurrency).trigger('change');
         }
+        document.addEventListener("DOMContentLoaded", function () {
+            var today = new Date().toISOString().split('T')[0];
+            document.getElementById("HistoricalDate").setAttribute('max', today);
+        });
     </script>
     <partial name="_ValidationScriptsPartial" />
 }
-
