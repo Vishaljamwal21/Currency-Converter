@@ -70,13 +70,6 @@ namespace CurrencyConverter.Services
             }
             return rates[toCurrency];
         }
-
-        public async Task<decimal> ConvertCurrencyAsync(decimal amount, string fromCurrency, string toCurrency)
-        {
-            var rate = await GetExchangeRateAsync(fromCurrency, toCurrency);
-            return amount * rate;
-        }
-
         public async Task<Dictionary<string, string>> GetCurrenciesAsync()
         {
             try

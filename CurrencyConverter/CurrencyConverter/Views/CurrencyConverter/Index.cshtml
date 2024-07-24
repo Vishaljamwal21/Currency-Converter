@@ -131,6 +131,7 @@
             attachDeleteHandlers();
             $('#currencyConverterForm').on('submit', function (e) {
                 e.preventDefault();
+                $('#SaveFavoriteHidden').val($('#SaveFavorite').is(':checked') ? 'true' : 'false');
 
                 var form = $(this)[0];
                 if (form.checkValidity() === false) {
@@ -141,9 +142,6 @@
 
                 var amount = $('#Amount').val();
                 var formData = $(this).serialize();
-                var saveFavorite = $('#SaveFavorite').is(':checked');
-                formData += '&SaveFavorite=' + (saveFavorite ? 'true' : 'false');
-
                 $.ajax({
                     url: '@Url.Action("Convert", "CurrencyConverter")',
                     type: 'POST',
@@ -254,6 +252,7 @@
             $('#clearButton').on('click', function () {
                 $('#currencyConverterForm')[0].reset();
                 $('#ConvertedAmount').val('');
+                $('#SaveFavorite').prop('checked', false);
                 $('#convertedamountdiv').hide();
                 $('#currencyConverterForm').removeClass('was-validated');
                 $('#favoriteErrorMessage').hide();
