@@ -99,7 +99,7 @@
         </div>
 
         <div class="col-md-4 d-flex justify-content-center">
-            @if (favorites != null && favorites.Count > 0)
+            @if (User.Identity.IsAuthenticated)
             {
                 <section class="bg-custom-light p-4 rounded-custom shadow-custom">
                     <h3>Quick Access Favorites</h3>
@@ -128,6 +128,7 @@
     <script>
         $(document).ready(function () {
             $('#convertedamountdiv').hide();
+            attachDeleteHandlers();
             $('#currencyConverterForm').on('submit', function (e) {
                 e.preventDefault();
 
@@ -149,10 +150,10 @@
                     data: formData,
                     success: function (response) {
                         if (response.success) {
-                            fetchFavorites();
                             $('#ConvertedAmount').val(response.convertedAmount.toFixed(2));
-                            $('#ConvertedAmount').show();
                             $('#convertedamountdiv').show();
+                            fetchFavorites();
+                            setFormReadOnly(true);
                             if (response.errorMessage) {
                                 $('#favoriteErrorMessage').text(response.errorMessage).show();
                             } else {
@@ -170,6 +171,11 @@
                 });
             });
 
+            function setFormReadOnly(isReadOnly) {
+                $('#BaseCurrency, #TargetCurrency, #Amount, #SaveFavorite').prop('disabled', isReadOnly);
+            }
+
+
             function updateFavoritesList(favorites) {
                 var favoritesList = $('#Favorites');
                 favoritesList.empty();
@@ -186,6 +192,7 @@
                         '</li>'
                     );
                 });
+                attachDeleteHandlers();
             }
 
             function fetchFavorites() {
@@ -195,6 +202,7 @@
                     success: function (response) {
                         if (response.success) {
                             updateFavoritesList(response.favorites);
+                            attachDeleteHandlers();
                         } 
                     },
                     error: function (xhr, status, error) {
@@ -203,65 +211,53 @@
                 });
             }
 
+            function attachDeleteHandlers() {
+                $('button[id^="delete_"]').each(function () {
+                    $(this).on('click', function (e) {
+                        e.preventDefault();
+                        var id = $(this).attr('id').replace('delete_', '');
 
-            $(document).ready(function () {
-                $("[id^='delete_']").click(function () {
-                    var id = $(this).attr('id').replace('delete_', '');
-                    deleteFavorite(id);
-                });
-            });
-            function deleteFavorite(id) {
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to recover this favorite!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete it!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: '@Url.Action("DeleteFavorite", "CurrencyConverter")',
-                            type: 'POST',
-                            data: { id: id },
-                            success: function (response) {
-                                if (response.success) {
-                                    Swal.fire(
-                                        'Deleted!',
-                                        'Your favorite has been deleted.',
-                                        'success'
-                                    );
-                                    fetchFavorites();
-                                } else {
-                                    Swal.fire(
-                                        'Error!',
-                                        response.errorMessage || 'Failed to delete favorite.',
-                                        'error'
-                                    );
-                                }
-                            },
-                            error: function () {
-                                Swal.fire(
-                                    'Error!',
-                                    'An error occurred while trying to delete the favorite.',
-                                    'error'
-                                );
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: 'This action cannot be undone.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, delete it!'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                $.ajax({
+                                    url: '@Url.Action("DeleteFavorite", "CurrencyConverter")',
+                                    type: 'POST',
+                                    data: { id: id },
+                                    success: function (response) {
+                                        if (response.success) {
+                                            fetchFavorites();
+                                        } else {
+                                            alert('Failed to delete favorite. Please try again.');
+                                        }
+                                    },
+                                    error: function () {
+                                        alert('An error occurred. Please try again.');
+                                    }
+                                });
                             }
                         });
-                    }
+                    });
                 });
             }
+
 
 
 
             $('#clearButton').on('click', function () {
                 $('#currencyConverterForm')[0].reset();
                 $('#ConvertedAmount').val('');
-                $('#ConvertedAmount').hide();
                 $('#convertedamountdiv').hide();
                 $('#currencyConverterForm').removeClass('was-validated');
                 $('#favoriteErrorMessage').hide();
+                setFormReadOnly(false);
             });
 
             $('#Amount, #BaseCurrency, #TargetCurrency').on('change', function () {
@@ -288,8 +284,6 @@
             $('#SaveFavorite').on('change', function () {
                 $('#SaveFavoriteHidden').val($(this).is(':checked') ? 'true' : 'false');
             });
-
-            $('#ConvertedAmount').hide();
 
             $('#historicalRatesForm').on('submit', function (e) {
                 e.preventDefault();

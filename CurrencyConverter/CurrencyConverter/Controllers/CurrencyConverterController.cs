@@ -28,7 +28,7 @@ namespace CurrencyConverter.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var favorites = await _context.FavoriteCurrencyPairs
                     .Where(f => f.UserId == userId)
-                    .ToListAsync();             
+                    .ToListAsync();
                 var historicalRates = await _exchangeRateService.GetHistoricalRatesAsync(DateTime.UtcNow);
                 ViewBag.HistoricalRates = historicalRates;
                 ViewBag.Favorites = favorites;
@@ -69,8 +69,8 @@ namespace CurrencyConverter.Controllers
                                                       f.BaseCurrency == model.BaseCurrency &&
                                                       f.TargetCurrency == model.TargetCurrency);
                         if (existingFavorite != null)
-                        {                          
-                            return Json(new { success = true, convertedAmount = model.ConvertedAmount,errorMessage = "This currency pair is already saved as a favorite." });
+                        {
+                            return Json(new { success = true, convertedAmount = model.ConvertedAmount, errorMessage = "This currency pair is already saved as a favorite." });
                         }
                         var favorite = new FavoriteCurrencyPair
                         {
@@ -111,22 +111,17 @@ namespace CurrencyConverter.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteFavorite(int id)
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var favorite = await _context.FavoriteCurrencyPairs
-                    .FirstOrDefaultAsync(f => f.Id == id && f.UserId == userId);
-                if (favorite != null)
-                {
-                    _context.FavoriteCurrencyPairs.Remove(favorite);
-                    await _context.SaveChangesAsync();
-                    return Json(new { success = true });
-                }
-              
-                return Json(new { success = false, errorMessage = "Favorite not found." });
-            }
 
-            return Json(new { success = false, errorMessage = "User not authenticated." });
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var favorite = await _context.FavoriteCurrencyPairs
+                .FirstOrDefaultAsync(f => f.Id == id && f.UserId == userId);
+            if (favorite != null)
+            {
+                _context.FavoriteCurrencyPairs.Remove(favorite);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            return Json(new { success = false, errorMessage = "Favorite not found." });
         }
 
         [HttpGet]

@@ -16,11 +16,6 @@ namespace CurrencyConverter.Controllers
         }
         public IActionResult Index()
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Index", "CurrencyConverter");
-            }
-
             return View();
         }
 

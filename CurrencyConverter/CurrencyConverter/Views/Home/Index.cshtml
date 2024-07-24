@@ -5,7 +5,12 @@
 <div class="text-center mb-4">
     <h1 class="display-4">Welcome to Currency Converter</h1>
     <p class="lead">Manage your currency conversions and track historical rates with ease.</p>
-    <p>To make the most out of our features, please <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-primary">Register</a> or <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-primary">Login</a></p>
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <p>To make the most out of our features, please <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-primary">Register</a> or <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-primary">Login</a></p>
+    }
+    
+    
 </div>
 
 <div class="container">
@@ -27,7 +32,14 @@
                     <i class="fas fa-star icon"></i>
                     <h3>Manage Favorites</h3>
                     <p>Save your favorite currency pairs for quick access and manage them easily after registration.</p>
-                    <a asp-area="Identity" asp-page="/Account/Register" class="btn">Register</a>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a href="@Url.Action("Index","CurrencyConverter")" class="btn">Manage Favorites</a>
+                    }
+                    else
+                    {
+                        <a asp-area="Identity" asp-page="/Account/Register" class="btn">Register</a>
+                    }
                 </div>
             </div>
         </div>
@@ -38,13 +50,19 @@
                     <i class="fas fa-chart-line icon"></i>
                     <h3>Historical Exchange Rates</h3>
                     <p>Access historical exchange rates to analyze trends and make informed decisions after registration.</p>
-                    <a asp-area="Identity" asp-page="/Account/Register" class="btn">Register</a>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a href="@Url.Action("Index","CurrencyConverter")" class="btn">View Historical Rates</a>
+                    }
+                    else
+                    {
+                        <a asp-area="Identity" asp-page="/Account/Register" class="btn">Register</a>
+                    }
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 
 <footer class="mt-4">
     <p>&copy; @DateTime.Now.Year - Currency Converter Project</p>
