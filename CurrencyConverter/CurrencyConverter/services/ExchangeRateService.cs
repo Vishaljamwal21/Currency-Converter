@@ -53,22 +53,29 @@ namespace CurrencyConverter.Services
             }
             catch (HttpRequestException ex)
             {
-                throw new Exception("An error occurred while fetching exchange rates.", ex);
+                throw new Exception("Network error while fetching exchange rates. Please check your connection and try again.", ex);
             }
-            catch (Exception ex)
+            catch (JsonException ex)
             {
-                throw new Exception("An error occurred while processing the exchange rates.", ex);
+                throw new Exception("Error parsing exchange rates response. The response may be in an unexpected format.", ex);
             }
         }
 
         public async Task<decimal> GetExchangeRateAsync(string fromCurrency, string toCurrency)
         {
-            var rates = await GetExchangeRatesAsync(fromCurrency);
-            if (!rates.ContainsKey(toCurrency))
+            try
             {
-                throw new Exception($"Exchange rate for {toCurrency} not found.");
+                var rates = await GetExchangeRatesAsync(fromCurrency);
+                if (!rates.ContainsKey(toCurrency))
+                {
+                    throw new KeyNotFoundException($"Exchange rate for '{toCurrency}' not found.");
+                }
+                return rates[toCurrency];
             }
-            return rates[toCurrency];
+            catch (Exception ex)
+            {
+                throw new Exception("An unexpected error occurred while retrieving the exchange rate.", ex);
+            }
         }
         public async Task<Dictionary<string, string>> GetCurrenciesAsync()
         {
@@ -84,11 +91,11 @@ namespace CurrencyConverter.Services
             }
             catch (HttpRequestException ex)
             {
-                throw new Exception("An error occurred while fetching currencies.", ex);
+                throw new Exception("Network error while fetching currencies. Please check your connection and try again.", ex);
             }
-            catch (Exception ex)
+            catch (JsonException ex)
             {
-                throw new Exception("An error occurred while processing currencies.", ex);
+                throw new Exception("Error parsing currencies response. The response may be in an unexpected format.", ex);
             }
         }
 
@@ -103,17 +110,17 @@ namespace CurrencyConverter.Services
                 var rates = result?.rates;
                 if (rates == null)
                 {
-                    return new Dictionary<string, decimal>();
+                    throw new Exception("Historical rates data is missing from the response.");
                 }
                 return rates.ToObject<Dictionary<string, decimal>>();
             }
             catch (HttpRequestException ex)
             {
-                return new Dictionary<string, decimal>();
+                throw new Exception("Network error while fetching historical rates. Please check your connection and try again.", ex);
             }
             catch (JsonException ex)
             {
-                return new Dictionary<string, decimal>();
+                throw new Exception("Error parsing historical rates response. The response may be in an unexpected format.", ex);
             }
         }
     }
