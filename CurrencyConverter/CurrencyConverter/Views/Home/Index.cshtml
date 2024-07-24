@@ -9,60 +9,65 @@
     {
         <p>To make the most out of our features, please <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-primary">Register</a> or <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-primary">Login</a></p>
     }
-    
-    
+
+
 </div>
 
 <div class="container">
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="pricing-card">
-                <div class="heading">
-                    <i class="fas fa-dollar-sign icon"></i>
-                    <h3>Free access currency converter</h3>
-                    <p>Manage and convert currency conversions. </p>
-                    <a href="@Url.Action("Index","CurrencyConverter")" class="btn">Try</a>
+    <div class="row justify-content-center">
+        @if (!User.Identity.IsAuthenticated)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="pricing-card text-center">
+                    <div class="heading">
+                        <i class="fas fa-dollar-sign icon"></i>
+                        <h3>Free Access Currency Converter</h3>
+                        <p>Manage and convert currency conversions.</p>
+                        <a href="@Url.Action("Index", "CurrencyConverter")" class="btn btn-primary">Try</a>
+                    </div>
                 </div>
             </div>
-        </div>
+        }
 
         <div class="col-md-4 mb-4">
-            <div class="pricing-card">
+            <div class="pricing-card text-center">
                 <div class="heading">
                     <i class="fas fa-star icon"></i>
                     <h3>Manage Favorites</h3>
                     <p>Save your favorite currency pairs for quick access and manage them easily after registration.</p>
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <a href="@Url.Action("Index","CurrencyConverter")" class="btn">Manage Favorites</a>
+                        <a href="@Url.Action("Index", "CurrencyConverter")" class="btn btn-primary">Manage Favorites</a>
                     }
                     else
                     {
-                        <a asp-area="Identity" asp-page="/Account/Register" class="btn">Register</a>
+                        <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary">Register</a>
                     }
                 </div>
             </div>
         </div>
 
         <div class="col-md-4 mb-4">
-            <div class="pricing-card">
+            <div class="pricing-card text-center">
                 <div class="heading">
                     <i class="fas fa-chart-line icon"></i>
                     <h3>Historical Exchange Rates</h3>
                     <p>Access historical exchange rates to analyze trends and make informed decisions after registration.</p>
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <a href="@Url.Action("Index","CurrencyConverter")" class="btn">View Historical Rates</a>
+                        <a href="@Url.Action("Index", "CurrencyConverter")" class="btn btn-primary">View Historical Rates</a>
                     }
                     else
                     {
-                        <a asp-area="Identity" asp-page="/Account/Register" class="btn">Register</a>
+                        <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary">Register</a>
                     }
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+
 
 <footer class="mt-4">
     <p>&copy; @DateTime.Now.Year - Currency Converter Project</p>

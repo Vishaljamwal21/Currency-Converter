@@ -160,13 +160,13 @@ body {
     overflow-y: auto;
 }
 .pricing-card {
-    border: 1px solid #e6e6e6;
-    border-radius: 10px;
-    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
     padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 
     .pricing-card h3 {
         font-size: 24px;
@@ -195,3 +195,25 @@ body {
         background-color: #007bff;
         color: white;
     }
+.container {
+    margin-top: 20px;
+}
+.pricing-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+section {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+    section:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+
+.container {
+    margin-top: 20px;
+}
