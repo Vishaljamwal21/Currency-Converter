@@ -10,26 +10,24 @@
 - Access to a free currency exchange API (e.g., ExchangeRate-API, Open Exchange Rates)
 ## Installation
 * Clone the Repository:
-- Copy code
 - git clone https://github.com/Vishaljamwal21/Final-Test.git
 ## Set Up the Database:
-* Apply database migrations:
+* Apply database migrations
 - update-database
 * Run the Application.
 
 ## Usage Instructions
 * User Authentication:
-* Registration and Login: 
+1. Registration and Login: 
 Users can register and log in using the built-in ASP.NET Identity system. This is required to save favorite currency pairs.
 * Currency Conversion:
-- Select Currencies: Use the dropdown menus to choose the base and target currencies.
-- Input Amount: Enter the amount in the base currency to be converted.
-- View Conversion: The converted amount will be displayed immediately.
-* Historical Exchange Rates:
-- Access historical conversion rates with live updates.
+1. Select Currencies: Use the dropdown menus to choose the base and target currencies.
+2. Input Amount: Enter the amount in the base currency to be converted.
+3. View Conversion: The converted amount will be displayed immediately.
+* Historical Exchange Rates: Access historical conversion rates with live updates.
 *  Favorite Currency Pairs:
-- Save Favorite Pairs: Logged-in users can save their favorite currency pairs for quick future access.
-- Manage Favorites: View and manage saved currency pairs in the user profile.
+1. Save Favorite Pairs: Logged-in users can save their favorite currency pairs for quick future access.
+2. Manage Favorites: View and manage saved currency pairs in the user profile.
 ## Error Handling
 * API Failures: Handle errors gracefully with user-friendly messages if the currency exchange API fails or returns invalid data.
 * User Inputs: Validate user inputs and display appropriate error messages for incorrect or missing data.
